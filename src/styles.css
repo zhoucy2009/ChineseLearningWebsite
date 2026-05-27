@@ -12,6 +12,26 @@ body {
   color: #1c2b24;
 }
 
+button,
+input {
+  font: inherit;
+}
+
+button {
+  border: 0;
+  border-radius: 999px;
+  padding: 9px 14px;
+  background: #1f5f46;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 #root {
   min-height: 100vh;
 }
@@ -172,45 +192,75 @@ body {
   border-radius: 999px;
   cursor: grab;
   box-shadow: 0 2px 7px rgba(28, 43, 36, 0.2);
+  outline: 2px solid rgba(255, 255, 255, 0.7);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  z-index: 2;
 }
 
 .drag-handle:active {
   cursor: grabbing;
 }
 
+.drag-handle:hover,
+.drag-handle:focus-visible {
+  box-shadow: 0 5px 16px rgba(28, 43, 36, 0.32);
+}
+
 .character-handle {
-  top: 1px;
+  top: -1px;
   left: 50%;
-  width: 14px;
-  height: 7px;
+  width: 20px;
+  height: 11px;
   transform: translateX(-50%);
   background: #d9413a;
 }
 
 .word-handle {
-  bottom: -4px;
+  bottom: -6px;
   left: 50%;
-  width: 22px;
-  height: 8px;
+  width: 32px;
+  height: 12px;
   transform: translateX(-50%);
   background: #f3c22f;
 }
 
 .phrase-handle {
   top: 50%;
-  width: 9px;
-  height: 28px;
+  width: 14px;
+  height: 38px;
   transform: translateY(-50%);
 }
 
 .idiom-handle {
-  left: -7px;
+  left: -10px;
   background: #33a65c;
 }
 
 .proverb-handle {
-  right: -7px;
+  right: -10px;
   background: #3478f6;
+}
+
+.meaning-tooltip {
+  position: fixed;
+  z-index: 20;
+  width: min(280px, calc(100vw - 28px));
+  transform: translate(-50%, calc(-100% - 14px));
+  display: grid;
+  gap: 6px;
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: rgba(28, 43, 36, 0.94);
+  color: #fff;
+  box-shadow: 0 18px 40px rgba(28, 43, 36, 0.25);
+  pointer-events: none;
+  font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.meaning-tooltip strong {
+  font-size: 1.05rem;
 }
 
 .notebook-panel {
@@ -231,6 +281,15 @@ body {
   background: #fff;
   border: 3px solid;
   box-shadow: 0 18px 42px rgba(28, 43, 36, 0.1);
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.notebook:hover,
+.notebook:focus-visible {
+  transform: translateY(-3px);
+  box-shadow: 0 22px 50px rgba(28, 43, 36, 0.16);
+  outline: none;
 }
 
 .notebook h2,
@@ -282,6 +341,259 @@ body {
   font-weight: 650;
 }
 
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(15, 23, 18, 0.45);
+  backdrop-filter: blur(4px);
+}
+
+.detail-panel {
+  width: min(1180px, 100%);
+  max-height: min(880px, calc(100vh - 48px));
+  overflow: auto;
+  display: grid;
+  gap: 20px;
+  border-top: 10px solid;
+  border-radius: 28px;
+  padding: 24px;
+  background: #fffdf8;
+  box-shadow: 0 30px 90px rgba(15, 23, 18, 0.35);
+}
+
+.detail-panel.red {
+  border-color: #d9413a;
+}
+
+.detail-panel.yellow {
+  border-color: #f3c22f;
+}
+
+.detail-panel.green {
+  border-color: #33a65c;
+}
+
+.detail-panel.blue {
+  border-color: #3478f6;
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.detail-header p,
+.detail-header h2 {
+  margin: 0;
+}
+
+.detail-header p {
+  color: #8a5d34;
+  font-weight: 800;
+}
+
+.detail-header h2 {
+  font-size: clamp(1.7rem, 3vw, 2.6rem);
+}
+
+.close-button,
+.light-button {
+  background: #f8f5f1;
+  color: #1c2b24;
+  border: 1px solid #e7dccd;
+}
+
+.danger-button {
+  background: #b2433d;
+  color: #fff;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid #efe8df;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.detail-table {
+  width: 100%;
+  min-width: 900px;
+  border-collapse: collapse;
+}
+
+.detail-table th,
+.detail-table td {
+  padding: 13px 12px;
+  border-bottom: 1px solid #efe8df;
+  text-align: left;
+  vertical-align: top;
+}
+
+.detail-table th {
+  background: #f8f5f1;
+  color: #2f463a;
+  font-size: 0.92rem;
+}
+
+.detail-item {
+  font-weight: 900;
+  font-size: 1.15rem;
+  white-space: nowrap;
+}
+
+.detail-item span {
+  display: block;
+  margin-top: 4px;
+  color: #8a5d34;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.empty-table {
+  text-align: center;
+  color: #8a5d34;
+  font-weight: 700;
+}
+
+.game-card {
+  display: grid;
+  gap: 14px;
+  border-radius: 22px;
+  padding: 18px;
+  background:
+    linear-gradient(135deg, rgba(63, 90, 74, 0.08), transparent 40%),
+    #ffffff;
+  border: 1px solid #e7dccd;
+}
+
+.game-card h3 {
+  margin: 8px 0 0;
+}
+
+.match-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.match-grid > div,
+.game-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.selected-game {
+  background: #2f6fed;
+  color: #fff;
+}
+
+.correct-game,
+.correct-drop {
+  background: #dff5e8;
+  color: #1f5f46;
+  border-color: #33a65c;
+}
+
+.quiz-list {
+  display: grid;
+  gap: 10px;
+}
+
+.quiz-row,
+.drop-blank {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) 80px minmax(160px, 1fr);
+  align-items: center;
+  gap: 10px;
+  border-radius: 16px;
+  padding: 12px;
+  background: #fffaf2;
+  border: 1px solid #efe8df;
+}
+
+.quiz-row input {
+  width: 64px;
+  border: 1px solid #d6c8b7;
+  border-radius: 12px;
+  padding: 8px;
+  text-align: center;
+  font-weight: 900;
+}
+
+.quiz-row small,
+.drop-blank small,
+.game-feedback {
+  color: #8a5d34;
+  font-weight: 750;
+}
+
+.game-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: #f8f5f1;
+  border: 1px solid #e7dccd;
+  font-weight: 800;
+  cursor: grab;
+}
+
+.drop-blank {
+  grid-template-columns: 1fr auto;
+  min-height: 56px;
+}
+
+.chain-line,
+.npc-box {
+  border-radius: 18px;
+  padding: 14px;
+  background: #f8f5f1;
+  font-weight: 800;
+}
+
+.dialogue-game {
+  background:
+    radial-gradient(circle at top left, rgba(52, 120, 246, 0.12), transparent 32%),
+    #fff;
+}
+
+.npc-box {
+  display: grid;
+  gap: 12px;
+  font-weight: 700;
+}
+
+.npc-box p {
+  margin: 0;
+}
+
+.dialogue-drop {
+  min-height: 58px;
+  display: grid;
+  place-items: center;
+  border: 2px dashed #3478f6;
+  border-radius: 16px;
+  padding: 12px;
+  background: #f2f6ff;
+  color: #244f9d;
+  font-weight: 900;
+  text-align: center;
+}
+
+.proverb-chip {
+  background: #f2f6ff;
+  border-color: rgba(52, 120, 246, 0.32);
+}
+
 @media (max-width: 980px) {
   .learning-page {
     grid-template-columns: 1fr;
@@ -303,6 +615,15 @@ body {
   }
 
   .notebook-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .quiz-row,
+  .drop-blank {
+    grid-template-columns: 1fr;
+  }
+
+  .match-grid {
     grid-template-columns: 1fr;
   }
 }

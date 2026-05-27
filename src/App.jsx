@@ -1,87 +1,14 @@
 import React from "react";
+import {
+  article,
+  emptyCollections,
+  gameData,
+  getEntry,
+  learningEntries,
+  notebooks
+} from "./learningData.js";
 
-const notebooks = [
-  { key: "characters", title: "生字本", colorName: "红色", className: "red" },
-  { key: "words", title: "生词本", colorName: "黄色", className: "yellow" },
-  { key: "idioms", title: "成语本", colorName: "绿色", className: "green" },
-  { key: "proverbs", title: "谚语本", colorName: "蓝色", className: "blue" }
-];
-
-const article = [
-  [
-    { words: ["清晨"] },
-    { text: "，" },
-    { words: ["校园", "的", "操场", "还", "带着", "露水"] },
-    { text: "。" },
-    { words: ["IB", "中文", "班", "的", "学生", "围坐", "在", "树荫", "下"] },
-    { text: "，" },
-    { words: ["讨论", "城市", "更新", "如何", "改变", "普通人", "的", "生活"] },
-    { text: "。" }
-  ],
-  [
-    { words: ["老师", "先", "读", "出", "一句", "话"] },
-    { text: "：" },
-    { words: ["读万卷书", "行万里路"], type: "proverbs", value: "读万卷书，行万里路" },
-    { text: "。" },
-    { words: ["她", "说", "阅读", "让", "我们", "看见", "远方"] },
-    { text: "，" },
-    { words: ["而", "实地", "观察", "让", "知识", "变得", "具体"] },
-    { text: "。" }
-  ],
-  [
-    { words: ["小林", "采访", "了", "附近", "老街", "的", "居民"] },
-    { text: "。" },
-    { words: ["有些", "老人", "担心", "传统", "店铺", "消失"] },
-    { text: "，" },
-    { words: ["也", "有", "年轻人", "认为", "新的", "图书馆", "和", "步行道", "能", "改善", "社区", "环境"] },
-    { text: "。" },
-    { words: ["大家", "的", "观点", "不同"] },
-    { text: "，" },
-    { words: ["却", "都", "希望", "城市", "发展", "能够"] },
-    { words: ["因地制宜"], type: "idioms", value: "因地制宜" },
-    { text: "。" }
-  ],
-  [
-    { words: ["在", "整理", "资料", "时"] },
-    { text: "，" },
-    { words: ["小组", "成员", "发现", "语言", "学习", "并", "不是", "一朝一夕", "的", "事情"] },
-    { text: "。" },
-    { words: ["正", "所谓"] },
-    { text: "“" },
-    { words: ["滴水穿石", "非一日之功"], type: "proverbs", value: "滴水穿石，非一日之功" },
-    { text: "”" },
-    { text: "，" },
-    { words: ["只有"] },
-    { words: ["持之以恒"], type: "idioms", value: "持之以恒" },
-    { text: "，" },
-    { words: ["才能", "在", "听说读写", "中", "慢慢", "积累", "信心"] },
-    { text: "。" }
-  ],
-  [
-    { words: ["最后", "展示", "那天"] },
-    { text: "，" },
-    { words: ["同学", "们", "把", "采访", "录音", "照片", "和", "文字", "材料", "组合", "成", "一份", "报告"] },
-    { text: "。" },
-    { words: ["他们", "明白", "了"] },
-    { words: ["同舟共济"], type: "idioms", value: "同舟共济" },
-    { words: ["的", "意义"] },
-    { text: "：" },
-    { words: ["众人拾柴火焰高"], type: "proverbs", value: "众人拾柴火焰高" },
-    { text: "。" },
-    { words: ["这", "篇", "阅读", "也", "提醒", "他们"] },
-    { text: "，" },
-    { words: ["学习", "中文", "要", "经常"] },
-    { words: ["温故知新"], type: "idioms", value: "温故知新" },
-    { text: "。" }
-  ]
-];
-
-const emptyCollections = {
-  characters: [],
-  words: [],
-  idioms: [],
-  proverbs: []
-};
+const notebookByKey = Object.fromEntries(notebooks.map((notebook) => [notebook.key, notebook]));
 
 function startDrag(event, kind, value) {
   event.stopPropagation();
@@ -90,41 +17,106 @@ function startDrag(event, kind, value) {
   event.dataTransfer.setData("text/plain", value);
 }
 
-function Character({ char }) {
+function joinList(items) {
+  return items?.join("、") || "暂无";
+}
+
+function useMeaningTooltip() {
+  const [tooltip, setTooltip] = React.useState(null);
+  const longPressTimer = React.useRef(null);
+
+  function showTooltip(event, kind, value) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const entry = getEntry(kind, value);
+    setTooltip({
+      value,
+      meaning: entry.meaning,
+      x: rect.left + rect.width / 2,
+      y: rect.top
+    });
+  }
+
+  function hideTooltip() {
+    window.clearTimeout(longPressTimer.current);
+    setTooltip(null);
+  }
+
+  function getHandleProps(kind, value) {
+    return {
+      onMouseEnter: (event) => showTooltip(event, kind, value),
+      onMouseLeave: hideTooltip,
+      onFocus: (event) => showTooltip(event, kind, value),
+      onBlur: hideTooltip,
+      onTouchStart: (event) => {
+        window.clearTimeout(longPressTimer.current);
+        longPressTimer.current = window.setTimeout(() => {
+          showTooltip(event, kind, value);
+        }, 520);
+      },
+      onTouchEnd: hideTooltip,
+      onTouchCancel: hideTooltip
+    };
+  }
+
+  return { tooltip, getHandleProps };
+}
+
+function MeaningTooltip({ tooltip }) {
+  if (!tooltip) return null;
+
+  return (
+    <div
+      className="meaning-tooltip"
+      style={{ left: tooltip.x, top: tooltip.y }}
+      role="status"
+    >
+      <strong>{tooltip.value}</strong>
+      <span>{tooltip.meaning}</span>
+    </div>
+  );
+}
+
+function Character({ char, getHandleProps }) {
   return (
     <span className="character-cell">
       <span
         className="drag-handle character-handle"
         draggable
+        tabIndex={0}
         aria-label={`拖动字：${char}`}
-        title={`拖动字：${char}`}
         onDragStart={(event) => startDrag(event, "characters", char)}
+        {...getHandleProps("characters", char)}
       />
       <span className="character-text">{char}</span>
     </span>
   );
 }
 
-function Word({ text }) {
+function Word({ text, getHandleProps }) {
   return (
     <span className="word-unit">
       <span className="word-characters">
         {[...text].map((char, index) => (
-          <Character key={`${text}-${char}-${index}`} char={char} />
+          <Character
+            key={`${text}-${char}-${index}`}
+            char={char}
+            getHandleProps={getHandleProps}
+          />
         ))}
       </span>
       <span
         className="drag-handle word-handle"
         draggable
+        tabIndex={0}
         aria-label={`拖动词：${text}`}
-        title={`拖动词：${text}`}
         onDragStart={(event) => startDrag(event, "words", text)}
+        {...getHandleProps("words", text)}
       />
     </span>
   );
 }
 
-function Segment({ segment, segmentIndex }) {
+function Segment({ segment, segmentIndex, getHandleProps }) {
   if (segment.text) {
     return <span className="punctuation">{segment.text}</span>;
   }
@@ -132,7 +124,11 @@ function Segment({ segment, segmentIndex }) {
   const content = (
     <>
       {segment.words.map((word, wordIndex) => (
-        <Word key={`${segmentIndex}-${word}-${wordIndex}`} text={word} />
+        <Word
+          key={`${segmentIndex}-${word}-${wordIndex}`}
+          text={word}
+          getHandleProps={getHandleProps}
+        />
       ))}
     </>
   );
@@ -148,9 +144,10 @@ function Segment({ segment, segmentIndex }) {
         <span
           className="drag-handle phrase-handle idiom-handle"
           draggable
+          tabIndex={0}
           aria-label={`拖动成语：${segment.value}`}
-          title={`拖动成语：${segment.value}`}
           onDragStart={(event) => startDrag(event, "idioms", segment.value)}
+          {...getHandleProps("idioms", segment.value)}
         />
       ) : null}
       {content}
@@ -158,28 +155,39 @@ function Segment({ segment, segmentIndex }) {
         <span
           className="drag-handle phrase-handle proverb-handle"
           draggable
+          tabIndex={0}
           aria-label={`拖动谚语：${segment.value}`}
-          title={`拖动谚语：${segment.value}`}
           onDragStart={(event) => startDrag(event, "proverbs", segment.value)}
+          {...getHandleProps("proverbs", segment.value)}
         />
       ) : null}
     </span>
   );
 }
 
-function DropZone({ notebook, items, onDropItem }) {
+function DropZone({ notebook, items, onDropItem, onOpen }) {
   return (
     <section
       className={`notebook ${notebook.className}`}
+      role="button"
+      tabIndex={0}
+      aria-label={`打开${notebook.title}`}
+      onClick={() => onOpen(notebook.key)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") onOpen(notebook.key);
+      }}
       onDragOver={(event) => {
         event.preventDefault();
         event.dataTransfer.dropEffect = "copy";
       }}
-      onDrop={(event) => onDropItem(event, notebook.key)}
+      onDrop={(event) => {
+        event.stopPropagation();
+        onDropItem(event, notebook.key);
+      }}
     >
       <div>
         <h2>{notebook.title}</h2>
-        <p>{notebook.colorName}区域</p>
+        <p>{notebook.colorName}区域，点击查看详情</p>
       </div>
       <div className="notebook-items">
         {items.length === 0 ? (
@@ -196,8 +204,313 @@ function DropZone({ notebook, items, onDropItem }) {
   );
 }
 
+function DetailsModal({ notebook, items, onClose, onRemove }) {
+  const entries = items.map((item) => ({ item, entry: getEntry(notebook.key, item) }));
+
+  return (
+    <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
+      <section
+        className={`detail-panel ${notebook.className}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="detail-title"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <div className="detail-header">
+          <div>
+            <p>{notebook.colorName}学习区</p>
+            <h2 id="detail-title">{notebook.title}</h2>
+          </div>
+          <button className="close-button" onClick={onClose}>关闭</button>
+        </div>
+
+        <div className="table-wrap">
+          <table className="detail-table">
+            <thead>
+              <tr>
+                <th>{notebook.itemLabel}</th>
+                <th>意思</th>
+                <th>同义词</th>
+                <th>反义词</th>
+                <th>例句</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              {entries.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="empty-table">还没有添加内容，先从文章拖一些进来。</td>
+                </tr>
+              ) : (
+                entries.map(({ item, entry }) => (
+                  <tr key={item}>
+                    <td className="detail-item">
+                      {item}
+                      {entry.pinyin ? <span>{entry.pinyin}</span> : null}
+                    </td>
+                    <td>{entry.meaning}</td>
+                    <td>{joinList(entry.synonyms)}</td>
+                    <td>{joinList(entry.antonyms)}</td>
+                    <td>{entry.example}</td>
+                    <td>
+                      <button className="danger-button" onClick={() => onRemove(notebook.key, item)}>
+                        删除
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <StudyGames notebookKey={notebook.key} items={items} />
+      </section>
+    </div>
+  );
+}
+
+function StudyGames({ notebookKey, items }) {
+  if (notebookKey === "characters") return <CharacterGames items={items} />;
+  if (notebookKey === "words") return <WordGames items={items} />;
+  if (notebookKey === "idioms") return <IdiomGames items={items} />;
+  return <ProverbGames items={items} />;
+}
+
+function CharacterGames({ items }) {
+  const playable = items.length ? items.slice(0, 6) : ["清", "晨", "宜", "恒"];
+  const [selectedPinyin, setSelectedPinyin] = React.useState("");
+  const [matched, setMatched] = React.useState({});
+  const [shapeAnswers, setShapeAnswers] = React.useState({});
+
+  function selectCharacter(char) {
+    if (!selectedPinyin) return;
+    const correct = getEntry("characters", char).pinyin === selectedPinyin;
+    if (correct) setMatched((current) => ({ ...current, [char]: true }));
+    setSelectedPinyin("");
+  }
+
+  return (
+    <div className="game-card">
+      <h3>小游戏：读音-字连线</h3>
+      <div className="match-grid">
+        <div>
+          {playable.map((char) => (
+            <button
+              key={char}
+              className={selectedPinyin === getEntry("characters", char).pinyin ? "selected-game" : "light-button"}
+              onClick={() => setSelectedPinyin(getEntry("characters", char).pinyin)}
+            >
+              {getEntry("characters", char).pinyin}
+            </button>
+          ))}
+        </div>
+        <div>
+          {playable.map((char) => (
+            <button
+              key={char}
+              className={matched[char] ? "correct-game" : "light-button"}
+              onClick={() => selectCharacter(char)}
+            >
+              {char}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <h3>小游戏：形近字填空组词</h3>
+      <div className="quiz-list">
+        {gameData.characters.shapeQuiz.map((quiz) => (
+          <label key={quiz.clue} className="quiz-row">
+            <span>{quiz.clue}</span>
+            <input
+              maxLength="1"
+              value={shapeAnswers[quiz.clue] || ""}
+              onChange={(event) => {
+                setShapeAnswers((current) => ({ ...current, [quiz.clue]: event.target.value }));
+              }}
+            />
+            <small>{shapeAnswers[quiz.clue] === quiz.answer ? "答对了" : quiz.hint}</small>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function WordGames({ items }) {
+  const wordOptions = Array.from(new Set([...items, "采访", "改善", "积累", "阅读", "观察"]));
+  const [fills, setFills] = React.useState({});
+  const [picked, setPicked] = React.useState([]);
+
+  function startWordGameDrag(event, word) {
+    event.dataTransfer.setData("text/game-word", word);
+  }
+
+  return (
+    <div className="game-card">
+      <h3>小游戏：拖动填空</h3>
+      <div className="game-options">
+        {wordOptions.map((word) => (
+          <span
+            key={word}
+            className="game-chip"
+            draggable
+            onDragStart={(event) => startWordGameDrag(event, word)}
+          >
+            {word}
+          </span>
+        ))}
+      </div>
+      <div className="quiz-list">
+        {gameData.words.fillBlank.map((quiz) => (
+          <div
+            key={quiz.sentence}
+            className="drop-blank"
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={(event) => {
+              const word = event.dataTransfer.getData("text/game-word");
+              setFills((current) => ({ ...current, [quiz.sentence]: word }));
+            }}
+          >
+            {quiz.sentence.replace("___", fills[quiz.sentence] || "______")}
+            <small>{fills[quiz.sentence] === quiz.answer ? "答对了" : "把词拖到这里"}</small>
+          </div>
+        ))}
+      </div>
+
+      <h3>小游戏：7选5</h3>
+      <div className="game-options">
+        {gameData.words.sevenPickFive.map((word) => (
+          <button
+            key={word}
+            className={picked.includes(word) ? "selected-game" : "light-button"}
+            onClick={() => {
+              setPicked((current) =>
+                current.includes(word)
+                  ? current.filter((item) => item !== word)
+                  : current.length < 5
+                    ? [...current, word]
+                    : current
+              );
+            }}
+          >
+            {word}
+          </button>
+        ))}
+      </div>
+      <p className="game-feedback">
+        {picked.length === 5
+          ? gameData.words.fiveAnswers.every((answer) => picked.includes(answer))
+            ? "5个学习动作都选对了。"
+            : "里面混入了不相关的词，再试一次。"
+          : `已选 ${picked.length}/5`}
+      </p>
+    </div>
+  );
+}
+
+function IdiomGames({ items }) {
+  const [chain, setChain] = React.useState([items[0] || "因地制宜"]);
+  const [blankAnswers, setBlankAnswers] = React.useState({});
+  const lastChar = chain[chain.length - 1].slice(-1);
+  const candidates = gameData.idioms.chainPool.filter(
+    (idiom) => idiom[0] === lastChar && !chain.includes(idiom)
+  );
+
+  return (
+    <div className="game-card">
+      <h3>小游戏：成语接龙</h3>
+      <div className="chain-line">{chain.join(" -> ")}</div>
+      <div className="game-options">
+        {(candidates.length ? candidates : gameData.idioms.chainPool.slice(0, 4)).map((idiom) => (
+          <button
+            key={idiom}
+            className="light-button"
+            onClick={() => {
+              if (idiom[0] === lastChar && !chain.includes(idiom)) {
+                setChain((current) => [...current, idiom]);
+              }
+            }}
+          >
+            {idiom}
+          </button>
+        ))}
+      </div>
+
+      <h3>小游戏：四字词语挖空填字</h3>
+      <div className="quiz-list">
+        {gameData.idioms.blanks.map((quiz) => (
+          <label key={quiz.full} className="quiz-row">
+            <span>{quiz.clue}</span>
+            <input
+              maxLength="1"
+              value={blankAnswers[quiz.full] || ""}
+              onChange={(event) => {
+                setBlankAnswers((current) => ({ ...current, [quiz.full]: event.target.value }));
+              }}
+            />
+            <small>{blankAnswers[quiz.full] === quiz.answer ? `答对：${quiz.full}` : "填入缺少的字"}</small>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ProverbGames({ items }) {
+  const options = Array.from(new Set([...items, ...Object.keys(learningEntries.proverbs)]));
+  const [sceneIndex, setSceneIndex] = React.useState(0);
+  const [answers, setAnswers] = React.useState({});
+  const scene = gameData.proverbs.dialogue[sceneIndex];
+  const currentAnswer = answers[sceneIndex];
+  const isCorrect = currentAnswer === scene.answer;
+
+  return (
+    <div className="game-card dialogue-game">
+      <h3>小游戏：谚语对话闯关</h3>
+      <div className="npc-box">
+        <p>{scene.npc}</p>
+        <div
+          className={`dialogue-drop ${isCorrect ? "correct-drop" : ""}`}
+          onDragOver={(event) => event.preventDefault()}
+          onDrop={(event) => {
+            setAnswers((current) => ({
+              ...current,
+              [sceneIndex]: event.dataTransfer.getData("text/proverb")
+            }));
+          }}
+        >
+          {currentAnswer || "把合适的谚语拖到这里，未完成时不能跳过"}
+        </div>
+      </div>
+      <div className="game-options">
+        {options.map((proverb) => (
+          <span
+            key={proverb}
+            className="game-chip proverb-chip"
+            draggable
+            onDragStart={(event) => event.dataTransfer.setData("text/proverb", proverb)}
+          >
+            {proverb}
+          </span>
+        ))}
+      </div>
+      <button
+        className="light-button"
+        disabled={!isCorrect}
+        onClick={() => setSceneIndex((current) => (current + 1) % gameData.proverbs.dialogue.length)}
+      >
+        {isCorrect ? "单击进入下一句" : "答对后才能跳过"}
+      </button>
+    </div>
+  );
+}
+
 export default function App() {
   const [collections, setCollections] = React.useState(emptyCollections);
+  const [openNotebook, setOpenNotebook] = React.useState(null);
+  const { tooltip, getHandleProps } = useMeaningTooltip();
 
   function handleDrop(event, targetKind) {
     event.preventDefault();
@@ -215,8 +528,18 @@ export default function App() {
     }));
   }
 
+  function removeItem(kind, value) {
+    setCollections((current) => ({
+      ...current,
+      [kind]: current[kind].filter((item) => item !== value)
+    }));
+  }
+
+  const activeNotebook = openNotebook ? notebookByKey[openNotebook] : null;
+
   return (
     <main className="learning-page">
+      <MeaningTooltip tooltip={tooltip} />
       <section className="article-card">
         <div className="article-heading">
           <p>IB中文阅读</p>
@@ -238,6 +561,7 @@ export default function App() {
                   key={`${paragraphIndex}-${segmentIndex}`}
                   segment={segment}
                   segmentIndex={`${paragraphIndex}-${segmentIndex}`}
+                  getHandleProps={getHandleProps}
                 />
               ))}
             </p>
@@ -252,9 +576,19 @@ export default function App() {
             notebook={notebook}
             items={collections[notebook.key]}
             onDropItem={handleDrop}
+            onOpen={setOpenNotebook}
           />
         ))}
       </aside>
+
+      {activeNotebook ? (
+        <DetailsModal
+          notebook={activeNotebook}
+          items={collections[activeNotebook.key]}
+          onClose={() => setOpenNotebook(null)}
+          onRemove={removeItem}
+        />
+      ) : null}
     </main>
   );
 }
