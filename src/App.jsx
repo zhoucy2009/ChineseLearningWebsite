@@ -127,7 +127,7 @@ function Word({ text, getHandleProps }) {
 }
 
 function Segment({ segment, segmentIndex, getHandleProps }) {
-  if (segment.text) {
+  if (!segment.type) {
     return <span className="punctuation">{segment.text}</span>;
   }
 
