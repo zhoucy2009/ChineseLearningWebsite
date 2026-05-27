@@ -77,6 +77,10 @@ function MeaningTooltip({ tooltip }) {
 }
 
 function Character({ char, getHandleProps }) {
+  if (!/[\u4e00-\u9fff]/.test(char)) {
+    return <span className="character-text">{char}</span>;
+  }
+
   return (
     <span className="character-cell">
       <span
@@ -92,18 +96,24 @@ function Character({ char, getHandleProps }) {
   );
 }
 
+function TextWithCharacters({ text, getHandleProps }) {
+  return (
+    <span className="word-characters">
+      {[...text].map((char, index) => (
+        <Character
+          key={`${text}-${char}-${index}`}
+          char={char}
+          getHandleProps={getHandleProps}
+        />
+      ))}
+    </span>
+  );
+}
+
 function Word({ text, getHandleProps }) {
   return (
     <span className="word-unit">
-      <span className="word-characters">
-        {[...text].map((char, index) => (
-          <Character
-            key={`${text}-${char}-${index}`}
-            char={char}
-            getHandleProps={getHandleProps}
-          />
-        ))}
-      </span>
+      <TextWithCharacters text={text} getHandleProps={getHandleProps} />
       <span
         className="drag-handle word-handle"
         draggable
@@ -121,23 +131,20 @@ function Segment({ segment, segmentIndex, getHandleProps }) {
     return <span className="punctuation">{segment.text}</span>;
   }
 
-  const content = (
-    <>
-      {segment.words.map((word, wordIndex) => (
-        <Word
-          key={`${segmentIndex}-${word}-${wordIndex}`}
-          text={word}
-          getHandleProps={getHandleProps}
-        />
-      ))}
-    </>
-  );
-
-  if (!segment.type) {
-    return <span className="plain-segment">{content}</span>;
+  if (segment.type === "word") {
+    return <Word text={segment.text} getHandleProps={getHandleProps} />;
   }
 
-  const isIdiom = segment.type === "idioms";
+  if (segment.type === "plain") {
+    return (
+      <span className="plain-segment">
+        <TextWithCharacters text={segment.text} getHandleProps={getHandleProps} />
+      </span>
+    );
+  }
+
+  const isIdiom = segment.type === "idiom";
+  const kind = isIdiom ? "idioms" : "proverbs";
   return (
     <span className={`special-segment ${isIdiom ? "idiom-segment" : "proverb-segment"}`}>
       {isIdiom ? (
@@ -145,20 +152,20 @@ function Segment({ segment, segmentIndex, getHandleProps }) {
           className="drag-handle phrase-handle idiom-handle"
           draggable
           tabIndex={0}
-          aria-label={`拖动成语：${segment.value}`}
-          onDragStart={(event) => startDrag(event, "idioms", segment.value)}
-          {...getHandleProps("idioms", segment.value)}
+          aria-label={`拖动成语：${segment.text}`}
+          onDragStart={(event) => startDrag(event, kind, segment.text)}
+          {...getHandleProps(kind, segment.text)}
         />
       ) : null}
-      {content}
+      <TextWithCharacters text={segment.text} getHandleProps={getHandleProps} />
       {!isIdiom ? (
         <span
           className="drag-handle phrase-handle proverb-handle"
           draggable
           tabIndex={0}
-          aria-label={`拖动谚语：${segment.value}`}
-          onDragStart={(event) => startDrag(event, "proverbs", segment.value)}
-          {...getHandleProps("proverbs", segment.value)}
+          aria-label={`拖动谚语：${segment.text}`}
+          onDragStart={(event) => startDrag(event, kind, segment.text)}
+          {...getHandleProps(kind, segment.text)}
         />
       ) : null}
     </span>
@@ -279,59 +286,106 @@ function StudyGames({ notebookKey, items }) {
 
 function CharacterGames({ items }) {
   const playable = items.length ? items.slice(0, 6) : ["清", "晨", "宜", "恒"];
-  const [selectedPinyin, setSelectedPinyin] = React.useState("");
-  const [matched, setMatched] = React.useState({});
+  const leftItems = playable.map((char) => ({ char, pinyin: getEntry("characters", char).pinyin }));
+  const rightItems = [...playable].reverse();
+  const [selectedPinyin, setSelectedPinyin] = React.useState(null);
+  const [matches, setMatches] = React.useState([]);
   const [shapeAnswers, setShapeAnswers] = React.useState({});
+
+  function startShapeDrag(event, char) {
+    event.dataTransfer.setData("text/shape-char", char);
+  }
 
   function selectCharacter(char) {
     if (!selectedPinyin) return;
-    const correct = getEntry("characters", char).pinyin === selectedPinyin;
-    if (correct) setMatched((current) => ({ ...current, [char]: true }));
-    setSelectedPinyin("");
+    const correct = getEntry("characters", char).pinyin === selectedPinyin.pinyin;
+    setMatches((current) => [
+      ...current.filter((match) => match.pinyin !== selectedPinyin.pinyin && match.char !== char),
+      { pinyin: selectedPinyin.pinyin, char, correct }
+    ]);
+    setSelectedPinyin(null);
   }
 
   return (
     <div className="game-card">
       <h3>小游戏：读音-字连线</h3>
-      <div className="match-grid">
-        <div>
-          {playable.map((char) => (
+      <div className="matching-board" style={{ "--match-count": playable.length }}>
+        <svg className="match-lines" viewBox="0 0 100 100" preserveAspectRatio="none">
+          {matches.map((match) => {
+            const leftIndex = leftItems.findIndex((item) => item.pinyin === match.pinyin);
+            const rightIndex = rightItems.findIndex((char) => char === match.char);
+            if (leftIndex < 0 || rightIndex < 0) return null;
+            const leftY = ((leftIndex + 0.5) / playable.length) * 100;
+            const rightY = ((rightIndex + 0.5) / playable.length) * 100;
+            return (
+              <line
+                key={`${match.pinyin}-${match.char}`}
+                x1="25"
+                y1={leftY}
+                x2="75"
+                y2={rightY}
+                className={match.correct ? "line-correct" : "line-wrong"}
+              />
+            );
+          })}
+        </svg>
+        <div className="match-column">
+          {leftItems.map((item) => (
             <button
-              key={char}
-              className={selectedPinyin === getEntry("characters", char).pinyin ? "selected-game" : "light-button"}
-              onClick={() => setSelectedPinyin(getEntry("characters", char).pinyin)}
+              key={item.pinyin}
+              className={selectedPinyin?.pinyin === item.pinyin ? "selected-game" : "light-button"}
+              onClick={() => setSelectedPinyin(item)}
             >
-              {getEntry("characters", char).pinyin}
+              {item.pinyin}
             </button>
           ))}
         </div>
-        <div>
-          {playable.map((char) => (
+        <div className="match-column">
+          {rightItems.map((char) => {
+            const match = matches.find((item) => item.char === char);
+            return (
             <button
               key={char}
-              className={matched[char] ? "correct-game" : "light-button"}
+              className={match?.correct ? "correct-game" : match ? "wrong-game" : "light-button"}
               onClick={() => selectCharacter(char)}
             >
               {char}
             </button>
-          ))}
+            );
+          })}
         </div>
       </div>
 
-      <h3>小游戏：形近字填空组词</h3>
+      <h3>小游戏：形近字拖动填空</h3>
+      <div className="game-options">
+        {Array.from(new Set(gameData.characters.shapeQuiz.flatMap((quiz) => quiz.options))).map((char) => (
+          <span
+            key={char}
+            className="game-chip"
+            draggable
+            onDragStart={(event) => startShapeDrag(event, char)}
+          >
+            {char}
+          </span>
+        ))}
+      </div>
       <div className="quiz-list">
         {gameData.characters.shapeQuiz.map((quiz) => (
-          <label key={quiz.clue} className="quiz-row">
+          <div
+            key={quiz.clue}
+            className={`drop-blank ${shapeAnswers[quiz.clue] === quiz.answer ? "correct-drop" : ""}`}
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={(event) => {
+              setShapeAnswers((current) => ({
+                ...current,
+                [quiz.clue]: event.dataTransfer.getData("text/shape-char")
+              }));
+            }}
+          >
             <span>{quiz.clue}</span>
-            <input
-              maxLength="1"
-              value={shapeAnswers[quiz.clue] || ""}
-              onChange={(event) => {
-                setShapeAnswers((current) => ({ ...current, [quiz.clue]: event.target.value }));
-              }}
-            />
-            <small>{shapeAnswers[quiz.clue] === quiz.answer ? "答对了" : quiz.hint}</small>
-          </label>
+            <strong>{shapeAnswers[quiz.clue] || "拖字到这里"}</strong>
+            <small>{shapeAnswers[quiz.clue] === quiz.answer ? "答对了" : `候选：${quiz.options.join(" / ")}`}</small>
+          </div>
         ))}
       </div>
     </div>
@@ -341,7 +395,9 @@ function CharacterGames({ items }) {
 function WordGames({ items }) {
   const wordOptions = Array.from(new Set([...items, "采访", "改善", "积累", "阅读", "观察"]));
   const [fills, setFills] = React.useState({});
-  const [picked, setPicked] = React.useState([]);
+  const [fillChecked, setFillChecked] = React.useState(false);
+  const [synonymAnswers, setSynonymAnswers] = React.useState({});
+  const [synonymChecked, setSynonymChecked] = React.useState(false);
 
   function startWordGameDrag(event, word) {
     event.dataTransfer.setData("text/game-word", word);
@@ -366,109 +422,266 @@ function WordGames({ items }) {
         {gameData.words.fillBlank.map((quiz) => (
           <div
             key={quiz.sentence}
-            className="drop-blank"
+            className={`drop-blank ${
+              fillChecked && fills[quiz.sentence] === quiz.answer ? "correct-drop" : ""
+            } ${fillChecked && fills[quiz.sentence] && fills[quiz.sentence] !== quiz.answer ? "wrong-drop" : ""}`}
             onDragOver={(event) => event.preventDefault()}
             onDrop={(event) => {
               const word = event.dataTransfer.getData("text/game-word");
               setFills((current) => ({ ...current, [quiz.sentence]: word }));
+              setFillChecked(false);
             }}
           >
             {quiz.sentence.replace("___", fills[quiz.sentence] || "______")}
-            <small>{fills[quiz.sentence] === quiz.answer ? "答对了" : "把词拖到这里"}</small>
+            <small>
+              {!fillChecked
+                ? "先全部拖完，再检查"
+                : fills[quiz.sentence] === quiz.answer
+                  ? "答对了"
+                  : `正确答案：${quiz.answer}`}
+            </small>
           </div>
         ))}
       </div>
+      <button className="light-button check-button" onClick={() => setFillChecked(true)}>
+        检查填空答案
+      </button>
 
-      <h3>小游戏：7选5</h3>
-      <div className="game-options">
-        {gameData.words.sevenPickFive.map((word) => (
-          <button
-            key={word}
-            className={picked.includes(word) ? "selected-game" : "light-button"}
-            onClick={() => {
-              setPicked((current) =>
-                current.includes(word)
-                  ? current.filter((item) => item !== word)
-                  : current.length < 5
-                    ? [...current, word]
-                    : current
+      <h3>小游戏：近义词对比填空</h3>
+      <div className="quiz-list">
+        {gameData.words.synonymContrast.map((group) => (
+          <div key={group.pair.join("-")} className="synonym-group">
+            <div className="game-options">
+              {group.pair.map((word) => (
+                <span
+                  key={word}
+                  className="game-chip"
+                  draggable
+                  onDragStart={(event) => startWordGameDrag(event, word)}
+                >
+                  {word}
+                </span>
+              ))}
+            </div>
+            {group.contexts.map((context) => {
+              const key = `${group.pair.join("-")}-${context.sentence}`;
+              const answer = synonymAnswers[key];
+              return (
+                <div
+                  key={key}
+                  className={`drop-blank ${
+                    synonymChecked && answer === context.answer ? "correct-drop" : ""
+                  } ${synonymChecked && answer && answer !== context.answer ? "wrong-drop" : ""}`}
+                  onDragOver={(event) => event.preventDefault()}
+                  onDrop={(event) => {
+                    setSynonymAnswers((current) => ({
+                      ...current,
+                      [key]: event.dataTransfer.getData("text/game-word")
+                    }));
+                    setSynonymChecked(false);
+                  }}
+                >
+                  {context.sentence.replace("___", answer || "______")}
+                  <small>
+                    {!synonymChecked
+                      ? "拖入更合适的词"
+                      : answer === context.answer
+                        ? "语境合适"
+                        : `应选：${context.answer}`}
+                  </small>
+                </div>
               );
-            }}
-          >
-            {word}
-          </button>
+            })}
+            <p className="game-feedback">{group.note}</p>
+          </div>
         ))}
       </div>
-      <p className="game-feedback">
-        {picked.length === 5
-          ? gameData.words.fiveAnswers.every((answer) => picked.includes(answer))
-            ? "5个学习动作都选对了。"
-            : "里面混入了不相关的词，再试一次。"
-          : `已选 ${picked.length}/5`}
-      </p>
+      <button className="light-button check-button" onClick={() => setSynonymChecked(true)}>
+        检查近义词答案
+      </button>
     </div>
   );
 }
 
 function IdiomGames({ items }) {
-  const [chain, setChain] = React.useState([items[0] || "因地制宜"]);
+  const pool = gameData.idioms.chainPool;
+  const starters = items.length ? items.filter((item) => pool.includes(item)) : gameData.idioms.starters;
+  const [chain, setChain] = React.useState([]);
+  const [currentPrompt, setCurrentPrompt] = React.useState(starters[0] || gameData.idioms.starters[0]);
+  const [userInput, setUserInput] = React.useState("");
+  const [timeLeft, setTimeLeft] = React.useState(30);
+  const [message, setMessage] = React.useState("NPC已经出题，请你接一个成语。");
   const [blankAnswers, setBlankAnswers] = React.useState({});
-  const lastChar = chain[chain.length - 1].slice(-1);
-  const candidates = gameData.idioms.chainPool.filter(
-    (idiom) => idiom[0] === lastChar && !chain.includes(idiom)
-  );
+  const [blankChecked, setBlankChecked] = React.useState(false);
+  const neededChar = currentPrompt.slice(-1);
+
+  function findNextIdiom(char, used = []) {
+    return pool.find((idiom) => idiom[0] === char && !used.includes(idiom));
+  }
+
+  function startRound(prompt = starters[0] || gameData.idioms.starters[0]) {
+    setChain([{ speaker: "NPC", idiom: prompt }]);
+    setCurrentPrompt(prompt);
+    setUserInput("");
+    setTimeLeft(30);
+    setMessage("NPC已经出题，请你接一个成语。");
+  }
+
+  function continueAfterUser(userIdiom, wasAuto = false) {
+    const used = [...chain.map((turn) => turn.idiom), currentPrompt, userIdiom];
+    const npcReply = findNextIdiom(userIdiom.slice(-1), used);
+    if (npcReply) {
+      setChain((current) => [
+        ...current,
+        { speaker: wasAuto ? "系统代填" : "你", idiom: userIdiom },
+        { speaker: "NPC", idiom: npcReply }
+      ]);
+      setCurrentPrompt(npcReply);
+      setMessage(wasAuto ? `系统代填：${userIdiom}。NPC继续接：${npcReply}` : `接上了！NPC接：${npcReply}`);
+    } else {
+      const nextStarter = starters.find((item) => item !== currentPrompt) || gameData.idioms.starters[0];
+      setChain((current) => [
+        ...current,
+        { speaker: wasAuto ? "系统代填" : "你", idiom: userIdiom },
+        { speaker: "NPC", idiom: nextStarter }
+      ]);
+      setCurrentPrompt(nextStarter);
+      setMessage("这条链暂时接不下去了，NPC换一个成语继续。");
+    }
+    setUserInput("");
+    setTimeLeft(30);
+  }
+
+  function autoFill(reason) {
+    const answer = findNextIdiom(neededChar, chain.map((turn) => turn.idiom));
+    if (answer) {
+      setMessage(`${reason}，系统帮你填：${answer}`);
+      continueAfterUser(answer, true);
+      return;
+    }
+    const nextStarter = gameData.idioms.starters.find((item) => item !== currentPrompt) || gameData.idioms.starters[0];
+    setCurrentPrompt(nextStarter);
+    setChain((current) => [...current, { speaker: "NPC", idiom: nextStarter }]);
+    setUserInput("");
+    setTimeLeft(30);
+    setMessage(`${reason}，这一轮没有可接成语，NPC换题。`);
+  }
+
+  function submitIdiom() {
+    const value = userInput.trim();
+    if (!value || value[0] !== neededChar || !pool.includes(value)) {
+      autoFill("没接上");
+      return;
+    }
+    continueAfterUser(value);
+  }
+
+  React.useEffect(() => {
+    const timer = window.setInterval(() => {
+      setTimeLeft((current) => current - 1);
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [currentPrompt]);
+
+  React.useEffect(() => {
+    if (timeLeft <= 0) autoFill("时间到");
+  }, [timeLeft]);
+
+  React.useEffect(() => {
+    if (chain.length === 0) startRound();
+  }, []);
 
   return (
     <div className="game-card">
       <h3>小游戏：成语接龙</h3>
-      <div className="chain-line">{chain.join(" -> ")}</div>
-      <div className="game-options">
-        {(candidates.length ? candidates : gameData.idioms.chainPool.slice(0, 4)).map((idiom) => (
-          <button
-            key={idiom}
-            className="light-button"
-            onClick={() => {
-              if (idiom[0] === lastChar && !chain.includes(idiom)) {
-                setChain((current) => [...current, idiom]);
-              }
-            }}
-          >
-            {idiom}
-          </button>
+      <div className="chain-status">
+        <strong>NPC：{currentPrompt}</strong>
+        <span>请用“{neededChar}”开头接龙</span>
+        <b>{timeLeft}s</b>
+      </div>
+      <div className="chain-line">
+        {chain.map((turn, index) => (
+          <span key={`${turn.speaker}-${turn.idiom}-${index}`}>
+            {turn.speaker}：{turn.idiom}
+          </span>
         ))}
       </div>
+      <div className="idiom-submit">
+        <input
+          value={userInput}
+          onChange={(event) => setUserInput(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") submitIdiom();
+          }}
+          placeholder={`输入“${neededChar}”开头的成语`}
+        />
+        <button onClick={submitIdiom}>提交</button>
+        <button className="light-button" onClick={() => autoFill("跳过本轮")}>不会，系统帮我接</button>
+      </div>
+      <p className="game-feedback">{message}</p>
 
       <h3>小游戏：四字词语挖空填字</h3>
       <div className="quiz-list">
         {gameData.idioms.blanks.map((quiz) => (
-          <label key={quiz.full} className="quiz-row">
+          <label
+            key={quiz.full}
+            className={`quiz-row ${
+              blankChecked && blankAnswers[quiz.full] === quiz.answer ? "correct-drop" : ""
+            } ${blankChecked && blankAnswers[quiz.full] && blankAnswers[quiz.full] !== quiz.answer ? "wrong-drop" : ""}`}
+          >
             <span>{quiz.clue}</span>
             <input
               maxLength="1"
               value={blankAnswers[quiz.full] || ""}
               onChange={(event) => {
                 setBlankAnswers((current) => ({ ...current, [quiz.full]: event.target.value }));
+                setBlankChecked(false);
               }}
             />
-            <small>{blankAnswers[quiz.full] === quiz.answer ? `答对：${quiz.full}` : "填入缺少的字"}</small>
+            <small>
+              {!blankChecked
+                ? "先全部填完，再检查"
+                : blankAnswers[quiz.full] === quiz.answer
+                  ? `答对：${quiz.full}`
+                  : `正确答案：${quiz.answer}`}
+            </small>
           </label>
         ))}
       </div>
+      <button className="light-button check-button" onClick={() => setBlankChecked(true)}>
+        检查成语填字
+      </button>
     </div>
   );
 }
 
 function ProverbGames({ items }) {
   const options = Array.from(new Set([...items, ...Object.keys(learningEntries.proverbs)]));
+  const [started, setStarted] = React.useState(false);
   const [sceneIndex, setSceneIndex] = React.useState(0);
   const [answers, setAnswers] = React.useState({});
-  const scene = gameData.proverbs.dialogue[sceneIndex];
+  const scenes = gameData.proverbs.dialogue;
+  const scene = scenes[sceneIndex];
   const currentAnswer = answers[sceneIndex];
   const isCorrect = currentAnswer === scene.answer;
+
+  if (!started) {
+    return (
+      <div className="game-card dialogue-game">
+        <h3>小游戏：谚语对话闯关</h3>
+        <div className="npc-box start-box">
+          <p>点击开始后，NPC才会说第一句话。每一关都要把合适的谚语拖到对话里，答对后才能进入下一句。</p>
+          <p>当前题库：{scenes.length} 个真实对话场景。</p>
+          <button onClick={() => setStarted(true)}>开始做题</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="game-card dialogue-game">
       <h3>小游戏：谚语对话闯关</h3>
+      <p className="game-feedback">第 {sceneIndex + 1} / {scenes.length} 句</p>
       <div className="npc-box">
         <p>{scene.npc}</p>
         <div
@@ -499,9 +712,9 @@ function ProverbGames({ items }) {
       <button
         className="light-button"
         disabled={!isCorrect}
-        onClick={() => setSceneIndex((current) => (current + 1) % gameData.proverbs.dialogue.length)}
+        onClick={() => setSceneIndex((current) => (current + 1) % scenes.length)}
       >
-        {isCorrect ? "单击进入下一句" : "答对后才能跳过"}
+        {isCorrect ? "单击进入下一句" : "答对后才能继续"}
       </button>
     </div>
   );

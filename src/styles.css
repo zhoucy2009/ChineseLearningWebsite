@@ -482,6 +482,44 @@ button:disabled {
   gap: 12px;
 }
 
+.matching-board {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 96px;
+  min-height: calc(var(--match-count) * 50px);
+  padding: 8px 0;
+}
+
+.match-column {
+  display: grid;
+  grid-template-rows: repeat(var(--match-count), 42px);
+  gap: 8px;
+  z-index: 1;
+}
+
+.match-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.match-lines line {
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.line-correct {
+  stroke: #33a65c;
+}
+
+.line-wrong {
+  stroke: #d9413a;
+  stroke-dasharray: 5 4;
+}
+
 .match-grid > div,
 .game-options {
   display: flex;
@@ -499,6 +537,13 @@ button:disabled {
   background: #dff5e8;
   color: #1f5f46;
   border-color: #33a65c;
+}
+
+.wrong-game,
+.wrong-drop {
+  background: #fde9e7;
+  color: #9f2f29;
+  border-color: #d9413a;
 }
 
 .quiz-list {
@@ -548,16 +593,73 @@ button:disabled {
 }
 
 .drop-blank {
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr auto auto;
   min-height: 56px;
 }
 
+.synonym-group {
+  display: grid;
+  gap: 10px;
+  border-radius: 18px;
+  padding: 12px;
+  background: #fffdf8;
+  border: 1px solid #efe8df;
+}
+
+.check-button {
+  justify-self: start;
+}
+
+.chain-status,
 .chain-line,
 .npc-box {
   border-radius: 18px;
   padding: 14px;
   background: #f8f5f1;
   font-weight: 800;
+}
+
+.chain-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #eef7f1;
+}
+
+.chain-status b {
+  min-width: 54px;
+  text-align: center;
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: #1f5f46;
+  color: #fff;
+}
+
+.chain-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chain-line span {
+  border-radius: 999px;
+  padding: 7px 11px;
+  background: #fff;
+  border: 1px solid #e7dccd;
+}
+
+.idiom-submit {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) auto auto;
+  gap: 10px;
+}
+
+.idiom-submit input {
+  min-width: 0;
+  border: 1px solid #d6c8b7;
+  border-radius: 999px;
+  padding: 10px 14px;
 }
 
 .dialogue-game {
@@ -574,6 +676,10 @@ button:disabled {
 
 .npc-box p {
   margin: 0;
+}
+
+.start-box {
+  justify-items: start;
 }
 
 .dialogue-drop {
@@ -624,6 +730,14 @@ button:disabled {
   }
 
   .match-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .matching-board {
+    gap: 42px;
+  }
+
+  .idiom-submit {
     grid-template-columns: 1fr;
   }
 }
