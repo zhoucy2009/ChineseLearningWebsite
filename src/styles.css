@@ -711,9 +711,146 @@ button:disabled {
   }
 }
 
+.app-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 28px;
+  background: #fff;
+  border-bottom: 1px solid #efe8df;
+  box-shadow: 0 6px 18px rgba(28, 43, 36, 0.06);
+}
+
+.app-bar-title {
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+.app-bar-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.app-bar-email {
+  color: #8a5d34;
+  font-weight: 700;
+}
+
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at top left, rgba(178, 67, 61, 0.1), transparent 28%),
+    linear-gradient(135deg, #fff9f0, #f2f6ff);
+}
+
+.auth-card {
+  width: min(420px, 100%);
+  display: grid;
+  gap: 18px;
+  border-radius: 24px;
+  padding: 28px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(28, 43, 36, 0.08);
+  box-shadow: 0 24px 70px rgba(28, 43, 36, 0.14);
+}
+
+.auth-heading {
+  display: grid;
+  gap: 6px;
+}
+
+.auth-heading p {
+  margin: 0;
+  color: #8a5d34;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.auth-heading h1 {
+  margin: 0;
+  font-size: 1.9rem;
+}
+
+.auth-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 5px;
+  border-radius: 999px;
+  background: #f2ece2;
+}
+
+.auth-tab {
+  background: transparent;
+  color: #6b5840;
+  border-radius: 999px;
+  padding: 9px 14px;
+}
+
+.auth-tab.active {
+  background: #fff;
+  color: #1c2b24;
+  box-shadow: 0 4px 12px rgba(28, 43, 36, 0.12);
+}
+
+.auth-form {
+  display: grid;
+  gap: 14px;
+}
+
+.auth-field {
+  display: grid;
+  gap: 6px;
+  font-weight: 700;
+  color: #2f463a;
+}
+
+.auth-field input {
+  border: 1px solid #d6c8b7;
+  border-radius: 12px;
+  padding: 11px 14px;
+  font-weight: 600;
+}
+
+.auth-field input:focus {
+  outline: 2px solid rgba(52, 120, 246, 0.4);
+  border-color: #3478f6;
+}
+
+.auth-error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #fde9e7;
+  color: #9f2f29;
+  font-weight: 700;
+}
+
+.auth-submit {
+  margin-top: 4px;
+  padding: 12px 16px;
+  font-size: 1rem;
+}
+
+.auth-hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #8a5d34;
+  text-align: center;
+}
+
 @media (max-width: 640px) {
   .learning-page {
     padding: 16px;
+  }
+
+  .app-bar {
+    padding: 12px 16px;
   }
 
   .article-card {

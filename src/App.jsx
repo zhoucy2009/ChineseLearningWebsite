@@ -7,6 +7,8 @@ import {
   learningEntries,
   notebooks
 } from "./learningData.js";
+import AuthScreen from "./AuthScreen.jsx";
+import { getSession, clearSession } from "./auth.js";
 
 const notebookByKey = Object.fromEntries(notebooks.map((notebook) => [notebook.key, notebook]));
 
@@ -720,7 +722,7 @@ function ProverbGames({ items }) {
   );
 }
 
-export default function App() {
+function LearningApp({ user, onLogout }) {
   const [collections, setCollections] = React.useState(emptyCollections);
   const [openNotebook, setOpenNotebook] = React.useState(null);
   const { tooltip, getHandleProps } = useMeaningTooltip();
@@ -751,7 +753,15 @@ export default function App() {
   const activeNotebook = openNotebook ? notebookByKey[openNotebook] : null;
 
   return (
-    <main className="learning-page">
+    <>
+      <header className="app-bar">
+        <span className="app-bar-title">中文学习网站</span>
+        <div className="app-bar-user">
+          <span className="app-bar-email">{user.email}</span>
+          <button className="light-button" onClick={onLogout}>退出登录</button>
+        </div>
+      </header>
+      <main className="learning-page">
       <MeaningTooltip tooltip={tooltip} />
       <section className="article-card">
         <div className="article-heading">
@@ -802,6 +812,22 @@ export default function App() {
           onRemove={removeItem}
         />
       ) : null}
-    </main>
+      </main>
+    </>
   );
+}
+
+export default function App() {
+  const [user, setUser] = React.useState(() => getSession());
+
+  function handleLogout() {
+    clearSession();
+    setUser(null);
+  }
+
+  if (!user) {
+    return <AuthScreen onAuthed={setUser} />;
+  }
+
+  return <LearningApp user={user} onLogout={handleLogout} />;
 }
