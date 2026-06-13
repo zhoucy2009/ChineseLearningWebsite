@@ -117,16 +117,16 @@ button:disabled {
 
 .reading-text {
   display: grid;
-  gap: 18px;
+  gap: 24px;
   max-width: 960px;
   font-family: "Songti SC", "Noto Serif CJK SC", "SimSun", serif;
   font-size: clamp(1.35rem, 2.1vw, 2rem);
-  line-height: 2.15;
+  line-height: 2.45;
 }
 
 .reading-text p {
   margin: 0;
-  padding-top: 12px;
+  padding-top: 16px;
 }
 
 .plain-segment,
@@ -855,6 +855,83 @@ button:disabled {
 
   .article-card {
     padding: 22px;
+  }
+
+  .drag-handle {
+    width: 44px;
+    height: 44px;
+    background: transparent;
+    box-shadow: none;
+    outline: 0;
+    touch-action: manipulation;
+  }
+
+  .drag-handle::after {
+    content: "";
+    position: absolute;
+    border-radius: 999px;
+    box-shadow: 0 2px 8px rgba(28, 43, 36, 0.22);
+    outline: 2px solid rgba(255, 255, 255, 0.76);
+  }
+
+  .character-handle {
+    top: -13px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .character-handle::after {
+    top: 17px;
+    left: 50%;
+    width: 24px;
+    height: 10px;
+    transform: translateX(-50%);
+    background: #d9413a;
+  }
+
+  .word-handle {
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .word-handle::after {
+    bottom: 17px;
+    left: 50%;
+    width: 34px;
+    height: 11px;
+    transform: translateX(-50%);
+    background: #f3c22f;
+  }
+
+  .phrase-handle {
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .phrase-handle::after {
+    top: 50%;
+    width: 13px;
+    height: 36px;
+    transform: translateY(-50%);
+  }
+
+  .idiom-handle {
+    left: -24px;
+  }
+
+  .idiom-handle::after {
+    left: 15px;
+    background: #33a65c;
+  }
+
+  .proverb-handle {
+    right: -24px;
+  }
+
+  .proverb-handle::after {
+    right: 15px;
+    background: #3478f6;
   }
 
   .notebook-panel {
