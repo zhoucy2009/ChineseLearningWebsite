@@ -1,5 +1,6 @@
 const USERS_KEY = "clw_users";
 const SESSION_KEY = "clw_session";
+const COLLECTIONS_KEY_PREFIX = "clw_collections";
 
 function loadUsers() {
   try {
@@ -11,6 +12,10 @@ function loadUsers() {
 
 function saveUsers(users) {
   localStorage.setItem(USERS_KEY, JSON.stringify(users));
+}
+
+function getCollectionsKey(email) {
+  return `${COLLECTIONS_KEY_PREFIX}:${email.trim().toLowerCase()}`;
 }
 
 // 仅用于本地演示的简单哈希；不具备真正的安全性，生产环境需改用后端 + 安全哈希。
@@ -72,4 +77,24 @@ export function getSession() {
 
 export function clearSession() {
   localStorage.removeItem(SESSION_KEY);
+}
+
+export function getSavedCollections(email, fallbackCollections) {
+  try {
+    const savedCollections = JSON.parse(localStorage.getItem(getCollectionsKey(email)));
+    if (!savedCollections) return fallbackCollections;
+
+    return Object.fromEntries(
+      Object.entries(fallbackCollections).map(([kind, fallbackItems]) => [
+        kind,
+        Array.isArray(savedCollections[kind]) ? savedCollections[kind] : fallbackItems
+      ])
+    );
+  } catch {
+    return fallbackCollections;
+  }
+}
+
+export function saveCollections(email, collections) {
+  localStorage.setItem(getCollectionsKey(email), JSON.stringify(collections));
 }

@@ -8,7 +8,7 @@ import {
   notebooks
 } from "./learningData.js";
 import AuthScreen from "./AuthScreen.jsx";
-import { getSession, clearSession } from "./auth.js";
+import { getSession, clearSession, getSavedCollections, saveCollections } from "./auth.js";
 
 const notebookByKey = Object.fromEntries(notebooks.map((notebook) => [notebook.key, notebook]));
 
@@ -723,9 +723,15 @@ function ProverbGames({ items }) {
 }
 
 function LearningApp({ user, onLogout }) {
-  const [collections, setCollections] = React.useState(emptyCollections);
+  const [collections, setCollections] = React.useState(() =>
+    getSavedCollections(user.email, emptyCollections)
+  );
   const [openNotebook, setOpenNotebook] = React.useState(null);
   const { tooltip, getHandleProps } = useMeaningTooltip();
+
+  React.useEffect(() => {
+    saveCollections(user.email, collections);
+  }, [user.email, collections]);
 
   function handleDrop(event, targetKind) {
     event.preventDefault();
@@ -829,5 +835,5 @@ export default function App() {
     return <AuthScreen onAuthed={setUser} />;
   }
 
-  return <LearningApp user={user} onLogout={handleLogout} />;
+  return <LearningApp key={user.email} user={user} onLogout={handleLogout} />;
 }
