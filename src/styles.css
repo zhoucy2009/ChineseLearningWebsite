@@ -10,6 +10,14 @@
 body {
   margin: 0;
   color: #1c2b24;
+  /* 防止把手/气泡等绝对定位元素造成横向溢出，手机上画面显示不全的元凶 */
+  overflow-x: hidden;
+}
+
+body.is-dragging {
+  /* 拖拽中禁止选中文本 */
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 button,
@@ -195,6 +203,11 @@ button:disabled {
   outline: 2px solid rgba(255, 255, 255, 0.7);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
   z-index: 2;
+  /* 触屏拖拽必需：阻止浏览器把手指移动当成页面滚动 */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .drag-handle:active {
@@ -583,18 +596,32 @@ button:disabled {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 38px;
+  min-height: 44px;
   border-radius: 999px;
-  padding: 8px 12px;
+  padding: 10px 14px;
   background: #f8f5f1;
   border: 1px solid #e7dccd;
   font-weight: 800;
   cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.chip-selected {
+  background: #2f6fed;
+  border-color: #2f6fed;
+  color: #fff;
 }
 
 .drop-blank {
   grid-template-columns: 1fr auto auto;
   min-height: 56px;
+}
+
+.drop-blank .game-options {
+  grid-column: 1 / -1;
 }
 
 .synonym-group {
@@ -700,6 +727,196 @@ button:disabled {
   border-color: rgba(52, 120, 246, 0.32);
 }
 
+/* 拖拽幽灵：跟随手指/鼠标的悬浮词条 */
+.drag-ghost {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 60;
+  margin: -22px 0 0 -30px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: #1c2b24;
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.05rem;
+  box-shadow: 0 14px 34px rgba(28, 43, 36, 0.35);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.ghost-characters { background: #d9413a; }
+.ghost-words { background: #c9971b; }
+.ghost-idioms { background: #33a65c; }
+.ghost-proverbs { background: #3478f6; }
+
+/* 放置目标反馈 */
+.drop-can {
+  outline: 2px dashed rgba(28, 43, 36, 0.35);
+  outline-offset: 3px;
+}
+
+.notebook.drop-over,
+.dock-target.drop-over {
+  transform: scale(1.04);
+  box-shadow: 0 10px 30px rgba(28, 43, 36, 0.28);
+  outline: 3px solid currentColor;
+}
+
+.drop-blank.drop-over,
+.dialogue-drop.drop-over {
+  background: #dff5e8;
+  outline: 3px solid #33a65c;
+}
+
+/* 手机底部篮子停靠栏：拖动时浮出，不用把词拖出屏幕 */
+.mobile-dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  display: none;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
+  background: rgba(255, 253, 248, 0.97);
+  border-top: 1px solid #e7dccd;
+  box-shadow: 0 -12px 30px rgba(28, 43, 36, 0.18);
+  transform: translateY(110%);
+  transition: transform 0.2s ease;
+}
+
+.mobile-dock.dock-visible {
+  transform: translateY(0);
+}
+
+.dock-target {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-height: 64px;
+  align-content: center;
+  border-radius: 16px;
+  border: 3px solid;
+  background: #fff;
+  font-size: 0.95rem;
+  transition: transform 0.12s ease;
+}
+
+.dock-target b {
+  font-size: 0.95rem;
+}
+
+.dock-target span {
+  font-weight: 800;
+  opacity: 0.6;
+}
+
+.dock-target.red { border-color: #d9413a; color: #d9413a; }
+.dock-target.yellow { border-color: #f3c22f; color: #a37b0a; }
+.dock-target.green { border-color: #33a65c; color: #1f5f46; }
+.dock-target.blue { border-color: #3478f6; color: #244f9d; }
+
+.dock-target.dock-muted {
+  opacity: 0.35;
+}
+
+/* 文章工具栏 + 难度星级 */
+.article-toolbar {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px dashed #e7dccd;
+}
+
+.toolbar-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.toolbar-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: #2f463a;
+}
+
+.toolbar-field select {
+  font: inherit;
+  border: 1px solid #d6c8b7;
+  border-radius: 999px;
+  padding: 8px 10px;
+  background: #fff;
+  color: #a37b0a;
+}
+
+.gen-status {
+  margin: 0;
+  font-weight: 700;
+  color: #8a5d34;
+}
+
+.gen-status.gen-error,
+.gen-status.gen-offline {
+  color: #9f2f29;
+}
+
+.library-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.library-list button {
+  width: 100%;
+  text-align: left;
+  border-radius: 14px;
+}
+
+.article-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  color: #8a5d34;
+}
+
+.stars {
+  font-size: 1.15rem;
+  letter-spacing: 2px;
+}
+
+.star-on { color: #f3a52f; }
+.star-off { color: #ddd2c2; }
+
+/* 游戏小部件 */
+.game-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.meaning-clue {
+  font-weight: 700;
+}
+
+.chain-you {
+  background: #dff5e8 !important;
+  border-color: #33a65c !important;
+}
+
+.time-low {
+  background: #b2433d !important;
+}
+
 @media (max-width: 980px) {
   .learning-page {
     grid-template-columns: 1fr;
@@ -708,6 +925,10 @@ button:disabled {
   .notebook-panel {
     position: static;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mobile-dock {
+    display: grid;
   }
 }
 
