@@ -37,4 +37,6 @@ ollama serve   # 通常已在后台
 - **难度评估**：篇幅/句长/成语谚语密度/用字丰富度的启发式评分，与模型自评各占一半，文章加载时实时计算。
 - **触屏拖拽**：HTML5 drag-and-drop 在 iOS/Android 上不工作，故用 Pointer Events 自实现；拖动时底部浮出四篮子停靠栏，不需要拖到屏幕外。
 
-## 云端登录（未实施，方案见 docs/cloud-auth-options.md）
+## 云端登录（Supabase，可选）
+
+已内置 Supabase 支持：配置 `.env.local`（复制 `.env.local.example` 填入项目 URL 和 anon key）后，注册/登录走云端，字词本跨设备自动同步；不配置则自动运行在纯本地模式。**详细配置步骤见 [docs/supabase-setup.md](docs/supabase-setup.md)**（建表 SQL、关闭邮箱确认等）。方案选型对比见 [docs/cloud-auth-options.md](docs/cloud-auth-options.md)。

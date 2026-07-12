@@ -2,6 +2,13 @@ import React from "react";
 import { notebooks, emptyCollections } from "./articles.js";
 import AuthScreen from "./AuthScreen.jsx";
 import { getSession, clearSession, getSavedCollections, saveCollections } from "./auth.js";
+import {
+  supabase,
+  cloudEnabled,
+  sessionToUser,
+  fetchCloudCollections,
+  saveCloudCollections
+} from "./supabase.js";
 import { getFallbackDictionaryEntry, lookupDictionaryEntry } from "./dictionary.js";
 import { DragProvider, useDragHandle, useDropTarget, useDragSession, canHover } from "./dnd.jsx";
 import { useArticleLibrary } from "./generator.js";
@@ -442,19 +449,74 @@ function ArticleToolbar({ library }) {
 
 /* ---------------- 主页面 ---------------- */
 
-function LearningApp({ user, onLogout }) {
+// 云端合并：同一类目取并集（云端顺序在前，本地新增补在后）
+function mergeCollections(local, cloud) {
+  if (!cloud) return local;
+  return Object.fromEntries(
+    Object.keys(emptyCollections).map((kind) => [
+      kind,
+      Array.from(new Set([...(cloud[kind] || []), ...(local[kind] || [])]))
+    ])
+  );
+}
+
+// 字词本：localStorage 即时保存（离线兜底），云端账号再防抖同步到 Supabase
+function useCollections(user) {
   const [collections, setCollections] = React.useState(() =>
     getSavedCollections(user.email, emptyCollections)
   );
+  // local: 纯本地账号 / loading: 正在拉云端 / synced / error
+  const [syncState, setSyncState] = React.useState(user.cloud ? "loading" : "local");
+  const syncStateRef = React.useRef(syncState);
+  syncStateRef.current = syncState;
+
+  React.useEffect(() => {
+    if (!user.cloud) return undefined;
+    let cancelled = false;
+    fetchCloudCollections(user.id)
+      .then((cloudData) => {
+        if (cancelled) return;
+        setCollections((local) => mergeCollections(local, cloudData));
+        setSyncState("synced");
+      })
+      .catch(() => {
+        if (!cancelled) setSyncState("error");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user.cloud, user.id]);
+
+  React.useEffect(() => {
+    saveCollections(user.email, collections);
+    // 云端数据还没拉回来之前不上传，避免用本地空数据覆盖云端
+    if (!user.cloud || syncStateRef.current === "loading") return undefined;
+    const timer = window.setTimeout(() => {
+      setSyncState("syncing");
+      saveCloudCollections(user.id, collections)
+        .then(() => setSyncState("synced"))
+        .catch(() => setSyncState("error"));
+    }, 800);
+    return () => window.clearTimeout(timer);
+  }, [user, collections]);
+
+  return { collections, setCollections, syncState };
+}
+
+const SYNC_LABELS = {
+  loading: "☁️ 拉取云端字词本…",
+  syncing: "☁️ 同步中…",
+  synced: "☁️ 已同步",
+  error: "⚠️ 云端同步失败（本地已保存）"
+};
+
+function LearningApp({ user, onLogout }) {
+  const { collections, setCollections, syncState } = useCollections(user);
   const [openNotebook, setOpenNotebook] = React.useState(null);
   const { getDictionaryEntry, loadDictionaryEntry } = useDictionaryEntries();
   const tooltip = useMeaningTooltip(loadDictionaryEntry);
   const library = useArticleLibrary(user.email);
   const article = library.current;
-
-  React.useEffect(() => {
-    saveCollections(user.email, collections);
-  }, [user.email, collections]);
 
   const addItem = React.useCallback((kind, value) => {
     setCollections((current) => ({
@@ -477,6 +539,11 @@ function LearningApp({ user, onLogout }) {
       <header className="app-bar">
         <span className="app-bar-title">中文学习网站</span>
         <div className="app-bar-user">
+          {syncState !== "local" ? (
+            <span className={`sync-badge ${syncState === "error" ? "sync-error" : ""}`}>
+              {SYNC_LABELS[syncState]}
+            </span>
+          ) : null}
           <span className="app-bar-email">{user.email}</span>
           <button className="light-button" onClick={onLogout}>退出登录</button>
         </div>
@@ -547,11 +614,33 @@ function LearningApp({ user, onLogout }) {
 }
 
 export default function App() {
-  const [user, setUser] = React.useState(() => getSession());
+  // 云端模式：登录态由 Supabase 会话驱动；本地模式：沿用 localStorage 会话
+  const [user, setUser] = React.useState(() => (cloudEnabled ? null : getSession()));
+  const [authReady, setAuthReady] = React.useState(!cloudEnabled);
 
-  function handleLogout() {
-    clearSession();
+  React.useEffect(() => {
+    if (!cloudEnabled) return undefined;
+    supabase.auth.getSession().then(({ data }) => {
+      setUser(sessionToUser(data.session));
+      setAuthReady(true);
+    });
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(sessionToUser(session));
+    });
+    return () => subscription.subscription.unsubscribe();
+  }, []);
+
+  async function handleLogout() {
+    if (cloudEnabled) {
+      await supabase.auth.signOut();
+    } else {
+      clearSession();
+    }
     setUser(null);
+  }
+
+  if (!authReady) {
+    return <main className="auth-page"><p className="auth-hint">正在恢复登录状态…</p></main>;
   }
 
   if (!user) {

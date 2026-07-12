@@ -29,7 +29,7 @@ button {
   border: 0;
   border-radius: 999px;
   padding: 9px 14px;
-  background: #1f5f46;
+  background: #3d6b55;
   color: #fff;
   cursor: pointer;
   font-weight: 700;
@@ -51,8 +51,8 @@ button:disabled {
   gap: 24px;
   padding: 28px;
   background:
-    radial-gradient(circle at top left, rgba(178, 67, 61, 0.1), transparent 28%),
-    linear-gradient(135deg, #fff9f0, #f2f6ff);
+    radial-gradient(circle at top left, rgba(193, 95, 79, 0.1), transparent 28%),
+    linear-gradient(135deg, #fbf7ef, #f0f3f8);
 }
 
 .article-card {
@@ -71,7 +71,7 @@ button:disabled {
 
 .article-heading p {
   margin: 0;
-  color: #8a5d34;
+  color: #8a6a4a;
   font-weight: 700;
   letter-spacing: 0.08em;
 }
@@ -108,19 +108,19 @@ button:disabled {
 }
 
 .red-dot {
-  background: #d9413a;
+  background: #c15f4f;
 }
 
 .yellow-dot {
-  background: #f3c22f;
+  background: #d9a441;
 }
 
 .green-dot {
-  background: #33a65c;
+  background: #5f9377;
 }
 
 .blue-dot {
-  background: #3478f6;
+  background: #6d87b8;
 }
 
 .reading-text {
@@ -151,13 +151,13 @@ button:disabled {
 }
 
 .idiom-segment {
-  background: rgba(51, 166, 92, 0.1);
-  border: 1px solid rgba(51, 166, 92, 0.25);
+  background: rgba(95, 147, 119, 0.1);
+  border: 1px solid rgba(95, 147, 119, 0.25);
 }
 
 .proverb-segment {
-  background: rgba(52, 120, 246, 0.1);
-  border: 1px solid rgba(52, 120, 246, 0.25);
+  background: rgba(109, 135, 184, 0.1);
+  border: 1px solid rgba(109, 135, 184, 0.25);
 }
 
 .word-unit {
@@ -170,7 +170,7 @@ button:disabled {
 }
 
 .word-unit:hover {
-  background: rgba(243, 194, 47, 0.14);
+  background: rgba(217, 164, 65, 0.14);
 }
 
 .word-characters {
@@ -225,7 +225,7 @@ button:disabled {
   width: 16px;
   height: 7px;
   transform: translateX(-50%);
-  background: #d9413a;
+  background: #c15f4f;
 }
 
 .word-handle {
@@ -234,7 +234,7 @@ button:disabled {
   width: 28px;
   height: 9px;
   transform: translateX(-50%);
-  background: #f3c22f;
+  background: #d9a441;
 }
 
 .phrase-handle {
@@ -246,12 +246,12 @@ button:disabled {
 
 .idiom-handle {
   left: -7px;
-  background: #33a65c;
+  background: #5f9377;
 }
 
 .proverb-handle {
   right: -7px;
-  background: #3478f6;
+  background: #6d87b8;
 }
 
 .meaning-tooltip {
@@ -320,19 +320,19 @@ button:disabled {
 }
 
 .notebook.red {
-  border-color: #d9413a;
+  border-color: #c15f4f;
 }
 
 .notebook.yellow {
-  border-color: #f3c22f;
+  border-color: #d9a441;
 }
 
 .notebook.green {
-  border-color: #33a65c;
+  border-color: #5f9377;
 }
 
 .notebook.blue {
-  border-color: #3478f6;
+  border-color: #6d87b8;
 }
 
 .notebook-items {
@@ -350,7 +350,7 @@ button:disabled {
 }
 
 .empty-note {
-  color: #8a5d34;
+  color: #8a6a4a;
   font-weight: 650;
 }
 
@@ -374,24 +374,24 @@ button:disabled {
   border-top: 10px solid;
   border-radius: 28px;
   padding: 24px;
-  background: #fffdf8;
+  background: #fdfbf5;
   box-shadow: 0 30px 90px rgba(15, 23, 18, 0.35);
 }
 
 .detail-panel.red {
-  border-color: #d9413a;
+  border-color: #c15f4f;
 }
 
 .detail-panel.yellow {
-  border-color: #f3c22f;
+  border-color: #d9a441;
 }
 
 .detail-panel.green {
-  border-color: #33a65c;
+  border-color: #5f9377;
 }
 
 .detail-panel.blue {
-  border-color: #3478f6;
+  border-color: #6d87b8;
 }
 
 .detail-header {
@@ -407,7 +407,7 @@ button:disabled {
 }
 
 .detail-header p {
-  color: #8a5d34;
+  color: #8a6a4a;
   font-weight: 800;
 }
 
@@ -423,7 +423,7 @@ button:disabled {
 }
 
 .danger-button {
-  background: #b2433d;
+  background: #a04c3e;
   color: #fff;
 }
 
@@ -463,14 +463,14 @@ button:disabled {
 .detail-item span {
   display: block;
   margin-top: 4px;
-  color: #8a5d34;
+  color: #8a6a4a;
   font-size: 0.8rem;
   font-weight: 700;
 }
 
 .empty-table {
   text-align: center;
-  color: #8a5d34;
+  color: #8a6a4a;
   font-weight: 700;
 }
 
@@ -525,11 +525,11 @@ button:disabled {
 }
 
 .line-correct {
-  stroke: #33a65c;
+  stroke: #5f9377;
 }
 
 .line-wrong {
-  stroke: #d9413a;
+  stroke: #c15f4f;
   stroke-dasharray: 5 4;
 }
 
@@ -541,22 +541,22 @@ button:disabled {
 }
 
 .selected-game {
-  background: #2f6fed;
+  background: #4a6285;
   color: #fff;
 }
 
 .correct-game,
 .correct-drop {
-  background: #dff5e8;
-  color: #1f5f46;
-  border-color: #33a65c;
+  background: #e4efe6;
+  color: #3d6b55;
+  border-color: #5f9377;
 }
 
 .wrong-game,
 .wrong-drop {
-  background: #fde9e7;
-  color: #9f2f29;
-  border-color: #d9413a;
+  background: #f6e7e3;
+  color: #a04c3e;
+  border-color: #c15f4f;
 }
 
 .quiz-list {
@@ -572,13 +572,13 @@ button:disabled {
   gap: 10px;
   border-radius: 16px;
   padding: 12px;
-  background: #fffaf2;
+  background: #fdfaf3;
   border: 1px solid #efe8df;
 }
 
 .quiz-row input {
   width: 64px;
-  border: 1px solid #d6c8b7;
+  border: 1px solid #d3c7b5;
   border-radius: 12px;
   padding: 8px;
   text-align: center;
@@ -588,7 +588,7 @@ button:disabled {
 .quiz-row small,
 .drop-blank small,
 .game-feedback {
-  color: #8a5d34;
+  color: #8a6a4a;
   font-weight: 750;
 }
 
@@ -610,8 +610,8 @@ button:disabled {
 }
 
 .chip-selected {
-  background: #2f6fed;
-  border-color: #2f6fed;
+  background: #4a6285;
+  border-color: #4a6285;
   color: #fff;
 }
 
@@ -629,7 +629,7 @@ button:disabled {
   gap: 10px;
   border-radius: 18px;
   padding: 12px;
-  background: #fffdf8;
+  background: #fdfbf5;
   border: 1px solid #efe8df;
 }
 
@@ -651,7 +651,7 @@ button:disabled {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  background: #eef7f1;
+  background: #ecf1ea;
 }
 
 .chain-status b {
@@ -659,7 +659,7 @@ button:disabled {
   text-align: center;
   border-radius: 999px;
   padding: 7px 10px;
-  background: #1f5f46;
+  background: #3d6b55;
   color: #fff;
 }
 
@@ -678,20 +678,20 @@ button:disabled {
 
 .idiom-submit {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) auto auto;
+  grid-template-columns: minmax(140px, 1fr) auto auto auto;
   gap: 10px;
 }
 
 .idiom-submit input {
   min-width: 0;
-  border: 1px solid #d6c8b7;
+  border: 1px solid #d3c7b5;
   border-radius: 999px;
   padding: 10px 14px;
 }
 
 .dialogue-game {
   background:
-    radial-gradient(circle at top left, rgba(52, 120, 246, 0.12), transparent 32%),
+    radial-gradient(circle at top left, rgba(109, 135, 184, 0.12), transparent 32%),
     #fff;
 }
 
@@ -713,18 +713,18 @@ button:disabled {
   min-height: 58px;
   display: grid;
   place-items: center;
-  border: 2px dashed #3478f6;
+  border: 2px dashed #6d87b8;
   border-radius: 16px;
   padding: 12px;
-  background: #f2f6ff;
-  color: #244f9d;
+  background: #f0f3f8;
+  color: #4a6285;
   font-weight: 900;
   text-align: center;
 }
 
 .proverb-chip {
-  background: #f2f6ff;
-  border-color: rgba(52, 120, 246, 0.32);
+  background: #f0f3f8;
+  border-color: rgba(109, 135, 184, 0.32);
 }
 
 /* 拖拽幽灵：跟随手指/鼠标的悬浮词条 */
@@ -745,10 +745,10 @@ button:disabled {
   white-space: nowrap;
 }
 
-.ghost-characters { background: #d9413a; }
-.ghost-words { background: #c9971b; }
-.ghost-idioms { background: #33a65c; }
-.ghost-proverbs { background: #3478f6; }
+.ghost-characters { background: #c15f4f; }
+.ghost-words { background: #b98a37; }
+.ghost-idioms { background: #5f9377; }
+.ghost-proverbs { background: #6d87b8; }
 
 /* 放置目标反馈 */
 .drop-can {
@@ -765,8 +765,8 @@ button:disabled {
 
 .drop-blank.drop-over,
 .dialogue-drop.drop-over {
-  background: #dff5e8;
-  outline: 3px solid #33a65c;
+  background: #e4efe6;
+  outline: 3px solid #5f9377;
 }
 
 /* 手机底部篮子停靠栏：拖动时浮出，不用把词拖出屏幕 */
@@ -813,10 +813,10 @@ button:disabled {
   opacity: 0.6;
 }
 
-.dock-target.red { border-color: #d9413a; color: #d9413a; }
-.dock-target.yellow { border-color: #f3c22f; color: #a37b0a; }
-.dock-target.green { border-color: #33a65c; color: #1f5f46; }
-.dock-target.blue { border-color: #3478f6; color: #244f9d; }
+.dock-target.red { border-color: #c15f4f; color: #c15f4f; }
+.dock-target.yellow { border-color: #d9a441; color: #8f6b2a; }
+.dock-target.green { border-color: #5f9377; color: #3d6b55; }
+.dock-target.blue { border-color: #6d87b8; color: #4a6285; }
 
 .dock-target.dock-muted {
   opacity: 0.35;
@@ -848,22 +848,22 @@ button:disabled {
 
 .toolbar-field select {
   font: inherit;
-  border: 1px solid #d6c8b7;
+  border: 1px solid #d3c7b5;
   border-radius: 999px;
   padding: 8px 10px;
   background: #fff;
-  color: #a37b0a;
+  color: #8f6b2a;
 }
 
 .gen-status {
   margin: 0;
   font-weight: 700;
-  color: #8a5d34;
+  color: #8a6a4a;
 }
 
 .gen-status.gen-error,
 .gen-status.gen-offline {
-  color: #9f2f29;
+  color: #a04c3e;
 }
 
 .library-list {
@@ -885,7 +885,7 @@ button:disabled {
   align-items: center;
   gap: 10px;
   font-weight: 700;
-  color: #8a5d34;
+  color: #8a6a4a;
 }
 
 .stars {
@@ -893,8 +893,8 @@ button:disabled {
   letter-spacing: 2px;
 }
 
-.star-on { color: #f3a52f; }
-.star-off { color: #ddd2c2; }
+.star-on { color: #d9a441; }
+.star-off { color: #ded5c6; }
 
 /* 游戏小部件 */
 .game-toolbar {
@@ -909,12 +909,12 @@ button:disabled {
 }
 
 .chain-you {
-  background: #dff5e8 !important;
-  border-color: #33a65c !important;
+  background: #e4efe6 !important;
+  border-color: #5f9377 !important;
 }
 
 .time-low {
-  background: #b2433d !important;
+  background: #a04c3e !important;
 }
 
 @media (max-width: 980px) {
@@ -955,7 +955,7 @@ button:disabled {
 }
 
 .app-bar-email {
-  color: #8a5d34;
+  color: #8a6a4a;
   font-weight: 700;
 }
 
@@ -965,8 +965,8 @@ button:disabled {
   place-items: center;
   padding: 24px;
   background:
-    radial-gradient(circle at top left, rgba(178, 67, 61, 0.1), transparent 28%),
-    linear-gradient(135deg, #fff9f0, #f2f6ff);
+    radial-gradient(circle at top left, rgba(193, 95, 79, 0.1), transparent 28%),
+    linear-gradient(135deg, #fbf7ef, #f0f3f8);
 }
 
 .auth-card {
@@ -987,7 +987,7 @@ button:disabled {
 
 .auth-heading p {
   margin: 0;
-  color: #8a5d34;
+  color: #8a6a4a;
   font-weight: 700;
   letter-spacing: 0.08em;
 }
@@ -1032,23 +1032,23 @@ button:disabled {
 }
 
 .auth-field input {
-  border: 1px solid #d6c8b7;
+  border: 1px solid #d3c7b5;
   border-radius: 12px;
   padding: 11px 14px;
   font-weight: 600;
 }
 
 .auth-field input:focus {
-  outline: 2px solid rgba(52, 120, 246, 0.4);
-  border-color: #3478f6;
+  outline: 2px solid rgba(109, 135, 184, 0.4);
+  border-color: #6d87b8;
 }
 
 .auth-error {
   margin: 0;
   padding: 10px 12px;
   border-radius: 12px;
-  background: #fde9e7;
-  color: #9f2f29;
+  background: #f6e7e3;
+  color: #a04c3e;
   font-weight: 700;
 }
 
@@ -1061,8 +1061,32 @@ button:disabled {
 .auth-hint {
   margin: 0;
   font-size: 0.85rem;
-  color: #8a5d34;
+  color: #8a6a4a;
   text-align: center;
+}
+
+.auth-notice {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #e4efe6;
+  color: #3d6b55;
+  font-weight: 700;
+}
+
+.sync-badge {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #3d6b55;
+  background: #ecf1ea;
+  border-radius: 999px;
+  padding: 6px 10px;
+  white-space: nowrap;
+}
+
+.sync-badge.sync-error {
+  color: #a04c3e;
+  background: #f6e7e3;
 }
 
 @media (max-width: 640px) {
@@ -1107,7 +1131,7 @@ button:disabled {
     width: 24px;
     height: 10px;
     transform: translateX(-50%);
-    background: #d9413a;
+    background: #c15f4f;
   }
 
   .word-handle {
@@ -1122,7 +1146,7 @@ button:disabled {
     width: 34px;
     height: 11px;
     transform: translateX(-50%);
-    background: #f3c22f;
+    background: #d9a441;
   }
 
   .phrase-handle {
@@ -1143,7 +1167,7 @@ button:disabled {
 
   .idiom-handle::after {
     left: 15px;
-    background: #33a65c;
+    background: #5f9377;
   }
 
   .proverb-handle {
@@ -1152,7 +1176,7 @@ button:disabled {
 
   .proverb-handle::after {
     right: 15px;
-    background: #3478f6;
+    background: #6d87b8;
   }
 
   .notebook-panel {
