@@ -12,14 +12,18 @@ const ollamaProxy = {
   }
 };
 
+// 默认只监听本机，避免同一网络中的其他设备借由开发代理访问本机 Ollama。
+// 确实需要手机联调时，显式使用 `EXPOSE_LAN=true npm run dev`。
+const host = process.env.EXPOSE_LAN === "true" ? "0.0.0.0" : "127.0.0.1";
+
 export default defineConfig({
   plugins: [react()],
   server: {
-    host: true,
+    host,
     proxy: ollamaProxy
   },
   preview: {
-    host: true,
+    host,
     proxy: ollamaProxy
   }
 });

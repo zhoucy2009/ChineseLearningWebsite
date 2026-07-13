@@ -9,7 +9,13 @@ npm install
 npm run dev        # http://localhost:5173
 ```
 
-手机在同一局域网访问：`http://<电脑IP>:5173`（dev server 已开 `host: true`）。
+开发服务器默认只监听本机，避免局域网内其他设备访问本机 Ollama 代理。确需手机联调时显式运行：
+
+```bash
+EXPOSE_LAN=true npm run dev
+```
+
+此时手机可访问 `http://<电脑IP>:5173`。只应在可信网络短时启用，用完后停止开发服务器。
 
 **文章生成（可选）**：需要本机跑 Ollama 且已拉取 `qwen3.5:9b`。
 

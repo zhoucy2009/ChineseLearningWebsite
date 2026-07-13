@@ -45,8 +45,10 @@ export default function AuthScreen({ onAuthed }) {
     // 成功后 App 的 onAuthStateChange 接管
   }
 
-  function handleLocalSubmit() {
-    const result = isRegister ? registerUser(email, password) : loginUser(email, password);
+  async function handleLocalSubmit() {
+    const result = isRegister
+      ? await registerUser(email, password)
+      : await loginUser(email, password);
     if (!result.ok) {
       setError(result.error);
       return;
@@ -64,8 +66,8 @@ export default function AuthScreen({ onAuthed }) {
       setError("两次输入的密码不一致。");
       return;
     }
-    if (isRegister && password.length < 6) {
-      setError("密码至少需要 6 位。");
+    if (isRegister && password.length < 8) {
+      setError("密码至少需要 8 位。");
       return;
     }
 
@@ -74,8 +76,10 @@ export default function AuthScreen({ onAuthed }) {
       if (cloudEnabled) {
         await handleCloudSubmit();
       } else {
-        handleLocalSubmit();
+        await handleLocalSubmit();
       }
+    } catch {
+      setError("本地安全登录需要 HTTPS 或 localhost；局域网联调请配置 Supabase 或使用 HTTPS。");
     } finally {
       setBusy(false);
     }
@@ -124,7 +128,7 @@ export default function AuthScreen({ onAuthed }) {
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              placeholder="至少 6 位"
+              placeholder="至少 8 位"
               autoComplete={isRegister ? "new-password" : "current-password"}
             />
           </label>
