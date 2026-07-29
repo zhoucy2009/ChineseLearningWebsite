@@ -6,7 +6,10 @@ import { buildArticle, seedArticle } from "./articles.js";
 // 队列策略：保持 BUFFER_TARGET 篇未读缓冲，用户每完成一篇自动补货，不做大题库。
 
 const MODEL = "qwen3.5:9b";
-const OLLAMA_BASE = "/ollama";
+// 优先走 vite 代理（手机局域网访问必须走它）；页面不是由 vite 服务时（如直接打开 dist），
+// 在电脑上浏览可退回直连本机 Ollama。
+const OLLAMA_BASES = ["/ollama", "http://127.0.0.1:11434"];
+let resolvedOllamaBase = null;
 const LIBRARY_KEY = "clw_generated_articles_v1";
 const PROGRESS_KEY_PREFIX = "clw_reading_progress_v1";
 const TARGET_KEY = "clw_target_stars_v1";
@@ -144,18 +147,35 @@ function progressKey(email) {
   return `${PROGRESS_KEY_PREFIX}:${email.trim().toLowerCase()}`;
 }
 
-export async function checkOllama() {
+// 不用 AbortSignal.timeout：旧版 Safari 没有它，会直接抛错导致误报“未运行”
+async function probeOllamaBase(base) {
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), 3000);
   try {
-    const response = await fetch(`${OLLAMA_BASE}/api/version`, { signal: AbortSignal.timeout(3000) });
+    const response = await fetch(`${base}/api/version`, { signal: controller.signal });
     return response.ok;
   } catch {
     return false;
+  } finally {
+    window.clearTimeout(timer);
   }
+}
+
+export async function checkOllama() {
+  if (resolvedOllamaBase && (await probeOllamaBase(resolvedOllamaBase))) return true;
+  for (const base of OLLAMA_BASES) {
+    if (await probeOllamaBase(base)) {
+      resolvedOllamaBase = base;
+      return true;
+    }
+  }
+  resolvedOllamaBase = null;
+  return false;
 }
 
 async function requestArticle(targetStars) {
   const topic = TOPICS[Math.floor(Math.random() * TOPICS.length)];
-  const response = await fetch(`${OLLAMA_BASE}/api/chat`, {
+  const response = await fetch(`${resolvedOllamaBase ?? OLLAMA_BASES[0]}/api/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -234,8 +254,23 @@ const generationManager = {
     }, 30000);
   },
 
+  // 手动重试：清掉冷却和定时器，立即触发一轮 ensureBuffer
+  retryNow() {
+    this.cooldownUntil = 0;
+    if (this.retryTimer) {
+      window.clearTimeout(this.retryTimer);
+      this.retryTimer = null;
+    }
+    this.notify();
+  },
+
   async ensureBuffer(unreadCount, targetStars) {
-    if (this.running || unreadCount >= BUFFER_TARGET) return;
+    if (this.running) return;
+    if (unreadCount >= BUFFER_TARGET) {
+      // 缓冲已满就不再生成；顺便清掉过期的离线/失败提示
+      if (this.status.state !== "idle") this.setStatus({ state: "idle", detail: "" });
+      return;
+    }
     // 失败后 30 秒冷却，防止 notify → effect → ensureBuffer 快速循环重试
     if (Date.now() < this.cooldownUntil) {
       this.scheduleRetry();
@@ -246,7 +281,10 @@ const generationManager = {
       const alive = await checkOllama();
       if (!alive) {
         this.cooldownUntil = Date.now() + 30000;
-        this.setStatus({ state: "offline", detail: "Ollama 未运行，暂时只能读现有文章（30 秒后自动重试）" });
+        this.setStatus({
+          state: "offline",
+          detail: "连不上 Ollama（代理和 127.0.0.1:11434 都试过了）。请确认电脑上 Ollama 已启动；手机访问需电脑的 npm run dev 开着。30 秒后自动重试"
+        });
         this.scheduleRetry();
         return;
       }
@@ -318,6 +356,8 @@ export function useArticleLibrary(email) {
     generationManager.ensureBuffer(unreadCount, targetStars);
   }, [unreadCount, targetStars, tick]);
 
+  const retryGeneration = React.useCallback(() => generationManager.retryNow(), []);
+
   const selectArticle = React.useCallback((id) => {
     setProgress((prev) => ({ ...prev, currentId: id }));
   }, []);
@@ -338,6 +378,7 @@ export function useArticleLibrary(email) {
     status,
     targetStars,
     setTargetStars,
+    retryGeneration,
     selectArticle,
     completeCurrent
   };

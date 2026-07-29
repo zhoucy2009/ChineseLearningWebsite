@@ -400,7 +400,10 @@ function Stars({ value }) {
 
 function ArticleToolbar({ library }) {
   const [showList, setShowList] = React.useState(false);
-  const { articles, current, readIds, unreadCount, status, targetStars, setTargetStars, selectArticle, completeCurrent } = library;
+  const {
+    articles, current, readIds, unreadCount, status,
+    targetStars, setTargetStars, retryGeneration, selectArticle, completeCurrent
+  } = library;
 
   return (
     <div className="article-toolbar">
@@ -422,6 +425,9 @@ function ArticleToolbar({ library }) {
         <p className={`gen-status gen-${status.state}`}>
           {status.state === "generating" ? "⏳ " : "⚠️ "}
           {status.detail}
+          {status.state === "offline" || status.state === "error" ? (
+            <button className="light-button retry-button" onClick={retryGeneration}>立即重试</button>
+          ) : null}
         </p>
       ) : null}
       {showList ? (
